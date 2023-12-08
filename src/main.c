@@ -29,25 +29,116 @@ en los textos que no est´en al final de una oraci´on deber´an quitarse tambi�
 #include <string.h>
 #include <errno.h>
 
-extern int errno;
 
-
-int main(int argc, char *argv[]) {
-    if( argc == 2 ) {
-      printf("The argument supplied is %s\n", argv[1]);
-   }
-   else if( argc > 2 ) {
-      printf("Too many arguments supplied.\n");
-   }
-   else {
-      printf("ERROR: No se \n");
-   }
+/* FILE * abrir_archivo(char *path)
+{
     FILE *fp;
-    fp = fopen(, "r");
+    fp = fopen(path, "r");
+    if (fp == NULL)
+    {
+        fprintf(stderr, "ERROR: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    return fp;
+}
 
-    // Codigo aca
+char * leer_archivo(FILE *fp)
+{
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    while ((read = getline(&line, &len, fp)) != -1)
+    {
+        printf("Retrieved line of length %zu:\n", read);
+        printf("%s", line);
+    }
+    return line;
+} */
 
-    printf("Hello World!\n");
+char * path_textos(char *argumento)
+{
+    const char *textos_path = "Textos/";
+    char *path = malloc(strlen(textos_path) + strlen(argumento) + 1);
+    *path = '\0';
+    strcat(path, textos_path);
+    strcat(path, argumento);
+    return path;
+}
+
+FILE ** leer_directorio(char *path_carpeta)
+{
+    const char * archivos_path = "archivos.txt";
+
+    size_t len = strlen("cd ") + strlen(path_carpeta) + strlen(" && ls > ../../") + strlen(archivos_path) + 1;
+    char * comando = malloc(len);
+    snprintf(comando, len, "cd %s && ls > ../../%s", path_carpeta, archivos_path);
+    system(comando);
+    free(comando);
+    
+    FILE *fp = fopen(archivos_path, "r");
+    if (fp == NULL)
+    {
+        fprintf(stderr, "ERROR: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    char line[256];
+    FILE * buf[256];
+    int index = 0;
+    while (fgets(line, sizeof(line), fp))
+    {
+        char *archivo = malloc(strlen(line) + 1);
+        strcat(archivo, line);
+        char * path_archivo;
+
+        len = strlen(path_carpeta) + strlen(archivo) + 1;
+        path_archivo = malloc(len); //FIXME: Fix the path to the archivo.
+
+        printf("%s\n", path_archivo);
+        buf[index] = fopen(path_archivo, "r");
+        
+        if (buf[index] == NULL)
+        {
+            fprintf(stderr, "ERROR No se pudo abrir el archivo %s: %s\n", path_archivo, strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        
+        index++;
+    }
+    FILE ** archivos = malloc(sizeof(FILE*) * index + 1);
+    printf("index: %d\n", index);
+    for(; buf[index]; index--){
+        archivos[index] = buf[index];
+        printf("archivo: %d\n", index);
+    } 
     fclose(fp);
+    return archivos;
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc > 2)
+    {
+        fprintf(stderr, "ERROR: Demasiados argumentos.\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (argc < 2)
+    {
+        fprintf(stderr, "ERROR: Se espera al menos un argumento.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char *path = path_textos(argv[1]);
+    FILE ** archivos = leer_directorio(path);
+    for (int i = 0; archivos[i]; i++)
+    {
+        printf("archivo: %d\n", i);
+        char line[256];
+        while(fgets(line, sizeof(line), archivos[i]))
+        {
+            printf("test:");
+            printf("%s", line);
+        }
+    }
+    free(path);
     return EXIT_SUCCESS;
 }
