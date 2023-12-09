@@ -142,7 +142,7 @@ dir leer_directorio(char *path_carpeta)
 
     for(; index >= 0; index--) archivos[index] = buf[index];
     fclose(archivosTxt);
-    system("rm archivos.txt");
+    safe_system("rm archivos.txt");
     return directorio;
 }
 
