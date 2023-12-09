@@ -1,4 +1,0 @@
-!.txt
-ejemplo espacio.txt
-hello.txt
-world.txt
