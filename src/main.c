@@ -93,6 +93,16 @@ char * path_textos(char *argumento)
     return path;
 }
 
+int safe_system(char *comando)
+{
+    int sys_err = system(comando);
+    if (sys_err){
+        fprintf(stderr, "Error al ejecutar el comando %s\n", comando);
+        exit(EXIT_FAILURE);
+    }
+    return sys_err;
+}
+
 dir leer_directorio(char *path_carpeta)
 {
     const char * archivos_path = "archivos.txt";
@@ -100,16 +110,16 @@ dir leer_directorio(char *path_carpeta)
     size_t len = strlen("cd ") + strlen(path_carpeta) + strlen(" && ls > ../../") + strlen(archivos_path) + 1;
     char * comando = safe_malloc(len);
     snprintf(comando, len, "cd %s && ls > ../../%s", path_carpeta, archivos_path);
-    system(comando);
+    safe_system(comando);
     free(comando);
     
-    FILE *fp = safe_fopen(archivos_path, "r");
+    FILE *archivosTxt = safe_fopen(archivos_path, "r");
 
     char line[256];
     FILE * buf[256];
     int index = -1;
 
-    while (fgets(line, sizeof(line), fp))
+    while (fgets(line, sizeof(line), archivosTxt))
     {
         index++;
         char *archivo = safe_malloc(strlen(line) + 1);
@@ -131,7 +141,8 @@ dir leer_directorio(char *path_carpeta)
     dir directorio = {archivos, index + 1};
 
     for(; index >= 0; index--) archivos[index] = buf[index];
-    fclose(fp);
+    fclose(archivosTxt);
+    system("rm archivos.txt");
     return directorio;
 }
 
