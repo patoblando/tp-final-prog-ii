@@ -28,26 +28,140 @@ en los textos que no est´en al final de una oraci´on deber´an quitarse tambi�
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 
-extern int errno;
 
-
-int main(int argc, char *argv[]) {
-    if( argc == 2 ) {
-      printf("The argument supplied is %s\n", argv[1]);
-   }
-   else if( argc > 2 ) {
-      printf("Too many arguments supplied.\n");
-   }
-   else {
-      printf("ERROR: No se \n");
-   }
+/* FILE * abrir_archivo(char *path)
+{
     FILE *fp;
-    fp = fopen(, "r");
+    fp = safe_fopen(path, "r");
+    if (fp == NULL)
+    {
+        fprintf(stderr, "ERROR: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    return fp;
+}
 
-    // Codigo aca
+char * leer_archivo(FILE *fp)
+{
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    while ((read = getline(&line, &len, fp)) != -1)
+    {
+        printf("Retrieved line of length %zu:\n", read);
+        printf("%s", line);
+    }
+    return line;
+} */
 
-    printf("Hello World!\n");
+typedef struct _dir {
+    FILE ** archivos;
+    int cantidad;
+} dir; 
+
+void * safe_malloc(size_t size)
+{
+    void * ptr = malloc(size);
+    if (ptr == NULL)
+    {
+        fprintf(stderr, "Malloc error: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    return ptr;
+}
+
+FILE * safe_fopen(const char *path, char *mode)
+{
+    FILE *fp = fopen(path, mode);
+    if (fp == NULL)
+    {
+        fprintf(stderr, "Error al abrir el archivo %s: %s\n", path, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    return fp;
+}
+
+char * path_textos(char *argumento)
+{
+    const char *textos_path = "Textos/";
+    char *path = safe_malloc(strlen(textos_path) + strlen(argumento) + 1);
+    *path = '\0';
+    strcat(path, textos_path);
+    strcat(path, argumento);
+    return path;
+}
+
+dir leer_directorio(char *path_carpeta)
+{
+    const char * archivos_path = "archivos.txt";
+
+    size_t len = strlen("cd ") + strlen(path_carpeta) + strlen(" && ls > ../../") + strlen(archivos_path) + 1;
+    char * comando = safe_malloc(len);
+    snprintf(comando, len, "cd %s && ls > ../../%s", path_carpeta, archivos_path);
+    system(comando);
+    free(comando);
+    
+    FILE *fp = safe_fopen(archivos_path, "r");
+
+    char line[256];
+    FILE * buf[256];
+    int index = -1;
+
+    while (fgets(line, sizeof(line), fp))
+    {
+        index++;
+        char *archivo = safe_malloc(strlen(line) + 1);
+        strcpy(archivo, line);
+        char * path_archivo;
+
+        len = strlen(path_carpeta) + strlen(archivo) + strlen("/") + 1; //Nota: strlen("/") = 1, pero lo dejo asi para claridad en el codigo
+        path_archivo = safe_malloc(len);
+        *path_archivo = '\0';
+        snprintf(path_archivo, len-1, "%s/%s", path_carpeta, archivo); // hago len-1 para que no se copie el '\n' en el ultimo caracter
+
+        buf[index] = safe_fopen(path_archivo, "r");
+        
+        free(path_archivo);
+        free(archivo);
+    }
+
+    FILE ** archivos = safe_malloc(sizeof(FILE*) * index + 1);
+    dir directorio = {archivos, index + 1};
+
+    for(; index >= 0; index--) archivos[index] = buf[index];
     fclose(fp);
+    return directorio;
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc > 2)
+    {
+        fprintf(stderr, "ERROR: Demasiados argumentos.\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (argc < 2)
+    {
+        fprintf(stderr, "ERROR: Se espera al menos un argumento.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char *path = path_textos(argv[1]);
+    dir directorio = leer_directorio(path);
+    
+    for (int i = 0; i < directorio.cantidad; i++)
+    {
+        printf(" ---- archivo: %d", i);
+        printf(" ----\n");
+        char line[256];
+        while(fgets(line, sizeof(line), directorio.archivos[i]))
+        {
+            printf("%s", line);
+        }
+        printf("\n");
+    }
+    free(path);
     return EXIT_SUCCESS;
 }
