@@ -12,8 +12,8 @@
 Un programa simple de predicción de texto hecho en c y Python como trabajo final de la materia "Programación II" en la carrera de Licenciatura en Ciencias de la Computación de la UNR.
 
 ## Prerrequisitos
-**El programa es compatible _solo_ con sistemas Unxi**
-Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/windows/wsl/install)
+**El programa es compatible _solo_ con sistemas Unxi
+Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/windows/wsl/install)**
 
 - GCC (https://gcc.gnu.org/)
 - Python3 (www.python.org)
