@@ -30,7 +30,6 @@ en los textos que no est´en al final de una oraci´on deber´an quitarse tambi�
 #include <errno.h>
 #include <assert.h>
 
-
 /* FILE * abrir_archivo(char *path)
 {
     FILE *fp;
@@ -56,14 +55,15 @@ char * leer_archivo(FILE *fp)
     return line;
 } */
 
-typedef struct _dir {
-    FILE ** archivos;
-    int cantidad;
-} dir; 
-
-void * safe_malloc(size_t size)
+typedef struct _dir
 {
-    void * ptr = malloc(size);
+    FILE **archivos;
+    int cantidad;
+} dir;
+
+void *safe_malloc(size_t size)
+{
+    void *ptr = malloc(size);
     if (ptr == NULL)
     {
         fprintf(stderr, "Malloc error: %s\n", strerror(errno));
@@ -72,7 +72,7 @@ void * safe_malloc(size_t size)
     return ptr;
 }
 
-FILE * safe_fopen(const char *path, char *mode)
+FILE *safe_fopen(const char *path, char *mode)
 {
     FILE *fp = fopen(path, mode);
     if (fp == NULL)
@@ -82,8 +82,18 @@ FILE * safe_fopen(const char *path, char *mode)
     }
     return fp;
 }
+int safe_fclose(FILE *fp)
+{
+    int result = fclose(fp);
+    if (result != 0)
+    {
+        fprintf(stderr, "Error al cerrar el archivo: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    return result;
+}
 
-char * path_textos(char *argumento)
+char *path_textos(char *argumento)
 {
     const char *textos_path = "Textos/";
     char *path = safe_malloc(strlen(textos_path) + strlen(argumento) + 1);
@@ -96,7 +106,8 @@ char * path_textos(char *argumento)
 int safe_system(char *comando)
 {
     int sys_err = system(comando);
-    if (sys_err){
+    if (sys_err)
+    {
         fprintf(stderr, "Error al ejecutar el comando %s\n", comando);
         exit(EXIT_FAILURE);
     }
@@ -105,18 +116,18 @@ int safe_system(char *comando)
 
 dir leer_directorio(char *path_carpeta)
 {
-    const char * archivos_path = "archivos.txt";
+    const char *archivos_path = "archivos.txt";
 
     size_t len = strlen("cd ") + strlen(path_carpeta) + strlen(" && ls > ../../") + strlen(archivos_path) + 1;
-    char * comando = safe_malloc(len);
+    char *comando = safe_malloc(len);
     snprintf(comando, len, "cd %s && ls > ../../%s", path_carpeta, archivos_path);
     safe_system(comando);
     free(comando);
-    
+
     FILE *archivosTxt = safe_fopen(archivos_path, "r");
 
     char line[256];
-    FILE * buf[256];
+    FILE *buf[256];
     int index = -1;
 
     while (fgets(line, sizeof(line), archivosTxt))
@@ -124,26 +135,36 @@ dir leer_directorio(char *path_carpeta)
         index++;
         char *archivo = safe_malloc(strlen(line) + 1);
         strcpy(archivo, line);
-        char * path_archivo;
+        char *path_archivo;
 
-        len = strlen(path_carpeta) + strlen(archivo) + strlen("/") + 1; //Nota: strlen("/") = 1, pero lo dejo asi para claridad en el codigo
+        len = strlen(path_carpeta) + strlen(archivo) + strlen("/") + 1; // Nota: strlen("/") = 1, pero lo dejo asi para claridad en el codigo
         path_archivo = safe_malloc(len);
         *path_archivo = '\0';
-        snprintf(path_archivo, len-1, "%s/%s", path_carpeta, archivo); // hago len-1 para que no se copie el '\n' en el ultimo caracter
+        snprintf(path_archivo, len - 1, "%s/%s", path_carpeta, archivo); // hago len-1 para que no se copie el '\n' en el ultimo caracter
 
         buf[index] = safe_fopen(path_archivo, "r");
-        
+
         free(path_archivo);
         free(archivo);
     }
 
-    FILE ** archivos = safe_malloc(sizeof(FILE*) * index + 1);
+    FILE **archivos = safe_malloc(sizeof(FILE *) * index + 1);
     dir directorio = {archivos, index + 1};
 
-    for(; index >= 0; index--) archivos[index] = buf[index];
+    for (; index >= 0; index--) archivos[index] = buf[index];
+    
     fclose(archivosTxt);
     safe_system("rm archivos.txt");
     return directorio;
+}
+
+void free_dir(dir directorio)
+{
+    for (int i = 0; i < directorio.cantidad; i++)
+    {
+        fclose(directorio.archivos[i]);
+    }
+    free(directorio.archivos);
 }
 
 int main(int argc, char *argv[])
@@ -161,18 +182,19 @@ int main(int argc, char *argv[])
 
     char *path = path_textos(argv[1]);
     dir directorio = leer_directorio(path);
-    
+
     for (int i = 0; i < directorio.cantidad; i++)
     {
         printf(" ---- archivo: %d", i);
         printf(" ----\n");
         char line[256];
-        while(fgets(line, sizeof(line), directorio.archivos[i]))
+        while (fgets(line, sizeof(line), directorio.archivos[i]))
         {
             printf("%s", line);
         }
         printf("\n");
     }
     free(path);
+    free_dir(directorio);
     return EXIT_SUCCESS;
 }
