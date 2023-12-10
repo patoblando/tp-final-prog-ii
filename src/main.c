@@ -58,6 +58,7 @@ char * leer_archivo(FILE *fp)
 typedef struct _dir
 {
     FILE **archivos;
+    char **nombres;
     int cantidad;
 } dir;
 
@@ -70,6 +71,17 @@ void *safe_malloc(size_t size)
         exit(EXIT_FAILURE);
     }
     return ptr;
+}
+
+void *safe_realloc(void *ptr, size_t size)
+{
+    void *new_ptr = realloc(ptr, size);
+    if (new_ptr == NULL)
+    {
+        fprintf(stderr, "Realloc error: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    return new_ptr;
 }
 
 FILE *safe_fopen(const char *path, char *mode)
@@ -128,6 +140,7 @@ dir leer_directorio(char *path_carpeta)
 
     char line[256];
     FILE *buf[256];
+    char **nombres = NULL;
     int index = -1;
 
     while (fgets(line, sizeof(line), archivosTxt))
@@ -137,10 +150,18 @@ dir leer_directorio(char *path_carpeta)
         strcpy(archivo, line);
         char *path_archivo;
 
+        nombres = safe_realloc(nombres, sizeof(char *) * (index + 1));
+        size_t len = strlen(archivo);
+        if (archivo[len - 1] == '\n') {
+            archivo[len - 1] = '\0';
+        }
+        nombres[index] = safe_malloc(len);
+        strcpy(nombres[index], archivo);
+
         len = strlen(path_carpeta) + strlen(archivo) + strlen("/") + 1; // Nota: strlen("/") = 1, pero lo dejo asi para claridad en el codigo
         path_archivo = safe_malloc(len);
         *path_archivo = '\0';
-        snprintf(path_archivo, len - 1, "%s/%s", path_carpeta, archivo); // hago len-1 para que no se copie el '\n' en el ultimo caracter
+        snprintf(path_archivo, len, "%s/%s", path_carpeta, archivo);
 
         buf[index] = safe_fopen(path_archivo, "r");
 
@@ -149,7 +170,7 @@ dir leer_directorio(char *path_carpeta)
     }
 
     FILE **archivos = safe_malloc(sizeof(FILE *) * index + 1);
-    dir directorio = {archivos, index + 1};
+    dir directorio = {archivos, nombres, index + 1};
 
     for (; index >= 0; index--) archivos[index] = buf[index];
     
@@ -165,7 +186,24 @@ void free_dir(dir directorio)
         safe_fclose(directorio.archivos[i]);
     }
     free(directorio.archivos);
+    for (int i = 0; i < directorio.cantidad; i++)
+    {
+        free(directorio.nombres[i]);
+    }
+    free(directorio.nombres);
+
 }
+
+/* void tests(){
+    char *path = path_textos("Fito_Paez");
+    assert(strcmp(path, "Textos/Fito_Paez") == 0);
+    free(path);
+
+    dir directorio = leer_directorio("Textos/hello_world");
+    assert(directorio.cantidad == 2);
+    
+    free_dir(directorio);
+} */
 
 int main(int argc, char *argv[])
 {
@@ -185,8 +223,7 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < directorio.cantidad; i++)
     {
-        printf(" ---- archivo: %d", i);
-        printf(" ----\n");
+        printf(" ---- %s ----\n", directorio.nombres[i]);
         char line[256];
         while (fgets(line, sizeof(line), directorio.archivos[i]))
         {
