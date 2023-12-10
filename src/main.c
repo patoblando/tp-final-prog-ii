@@ -162,7 +162,7 @@ void free_dir(dir directorio)
 {
     for (int i = 0; i < directorio.cantidad; i++)
     {
-        fclose(directorio.archivos[i]);
+        safe_fclose(directorio.archivos[i]);
     }
     free(directorio.archivos);
 }
