@@ -140,7 +140,7 @@ dir leer_directorio(char *path_carpeta)
 
     char line[256];
     FILE *buf[256];
-    char **nombres = NULL;
+    char **nombres = malloc(sizeof(char *));
     int index = -1;
 
     while (fgets(line, sizeof(line), archivosTxt))
@@ -152,13 +152,16 @@ dir leer_directorio(char *path_carpeta)
 
         nombres = safe_realloc(nombres, sizeof(char *) * (index + 1));
         size_t len = strlen(archivo);
+        printf("%s\n%zu\n", archivo, len);
         if (archivo[len - 1] == '\n') {
             archivo[len - 1] = '\0';
+            len--;
         }
-        nombres[index] = safe_malloc(len);
+        printf("%s\n%zu\n", archivo, len);
+        nombres[index] = safe_malloc(len + 1);
         strcpy(nombres[index], archivo);
 
-        len = strlen(path_carpeta) + strlen(archivo) + strlen("/") + 1; // Nota: strlen("/") = 1, pero lo dejo asi para claridad en el codigo
+        len = strlen(path_carpeta) + strlen(archivo) + strlen("/") + 1;
         path_archivo = safe_malloc(len);
         *path_archivo = '\0';
         snprintf(path_archivo, len, "%s/%s", path_carpeta, archivo);
@@ -169,7 +172,8 @@ dir leer_directorio(char *path_carpeta)
         free(archivo);
     }
 
-    FILE **archivos = safe_malloc(sizeof(FILE *) * index + 1);
+    FILE **archivos = safe_malloc(sizeof(FILE *) * index);
+
     dir directorio = {archivos, nombres, index + 1};
 
     for (; index >= 0; index--) archivos[index] = buf[index];
@@ -179,7 +183,7 @@ dir leer_directorio(char *path_carpeta)
     return directorio;
 }
 
-void free_dir(dir directorio)
+void free_dir(dir directorio) //FIXME: Creo que esto me da error en valgrind
 {
     for (int i = 0; i < directorio.cantidad; i++)
     {
@@ -221,7 +225,7 @@ int main(int argc, char *argv[])
     char *path = path_textos(argv[1]);
     dir directorio = leer_directorio(path);
 
-    for (int i = 0; i < directorio.cantidad; i++)
+    /* for (int i = 0; i < directorio.cantidad; i++)
     {
         printf(" ---- %s ----\n", directorio.nombres[i]);
         char line[256];
@@ -230,7 +234,7 @@ int main(int argc, char *argv[])
             printf("%s", line);
         }
         printf("\n");
-    }
+    } */
     free(path);
     free_dir(directorio);
     return EXIT_SUCCESS;
