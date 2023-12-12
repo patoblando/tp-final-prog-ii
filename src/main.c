@@ -139,8 +139,8 @@ dir leer_directorio(char *path_carpeta)
     FILE *archivosTxt = safe_fopen(archivos_path, "r");
 
     char line[256];
-    FILE *buf[256];
-    char **nombres = malloc(sizeof(char *));
+    char **nombres = malloc(sizeof(*nombres));
+    FILE **archivos = malloc(sizeof(*archivos));
     int index = -1;
 
     while (fgets(line, sizeof(line), archivosTxt))
@@ -150,7 +150,7 @@ dir leer_directorio(char *path_carpeta)
         strcpy(archivo, line);
         char *path_archivo;
 
-        nombres = safe_realloc(nombres, sizeof(char *) * (index + 1));
+        nombres = safe_realloc(nombres, sizeof(*nombres) * (index + 1));
         size_t len = strlen(archivo);
         printf("%s\n%zu\n", archivo, len);
         if (archivo[len - 1] == '\n') {
@@ -166,19 +166,16 @@ dir leer_directorio(char *path_carpeta)
         *path_archivo = '\0';
         snprintf(path_archivo, len, "%s/%s", path_carpeta, archivo);
 
-        buf[index] = safe_fopen(path_archivo, "r");
+        archivos = safe_realloc(archivos, sizeof(*archivos) * (index + 1));
+        archivos[index] = safe_fopen(path_archivo, "r");
 
         free(path_archivo);
         free(archivo);
     }
 
-    FILE **archivos = safe_malloc(sizeof(FILE *) * index);
-
     dir directorio = {archivos, nombres, index + 1};
 
-    for (; index >= 0; index--) archivos[index] = buf[index];
-    
-    fclose(archivosTxt);
+   fclose(archivosTxt);
     safe_system("rm archivos.txt");
     return directorio;
 }
