@@ -180,8 +180,7 @@ dir leer_directorio(char *path_carpeta)
     return directorio;
 }
 
-void free_dir(dir directorio) //FIXME: Creo que esto me da error en valgrind
-{
+void free_dir(dir directorio)
     for (int i = 0; i < directorio.cantidad; i++)
     {
         safe_fclose(directorio.archivos[i]);
