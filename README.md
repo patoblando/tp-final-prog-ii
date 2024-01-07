@@ -16,7 +16,7 @@ Un programa simple de predicción de texto hecho en c y Python como trabajo fina
 Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/windows/wsl/install)**
 
 - GCC (https://gcc.gnu.org/)
-- Python3 (www.python.org)
+- Python3 (https://www.python.org)
 - git (https://git-scm.com/)
 
 ## Clonar repositorio  
@@ -34,3 +34,7 @@ Para compilar y correr el programa rápidamente ejecute:
  ```sh
   gcc -g -Wall -o bin/hello_world src/main.c && bin/hello_world [arg]
   ```
+
+## Tests
+
+Los tests fallaran si el programa no puede encontrar el directorio Textos/hello_world
