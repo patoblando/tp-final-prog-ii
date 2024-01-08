@@ -120,7 +120,7 @@ int safe_system(char *comando)
     int sys_err = system(comando);
     if (sys_err)
     {
-        fprintf(stderr, "Error al ejecutar el comando %s\n", comando);
+        fprintf(stderr, "Error al ejecutar el comando %s\n", comando); //Intente mostrar el error que devolvia el comando con strerror(errno) pero mostraba "success"
         exit(EXIT_FAILURE);
     }
     return sys_err;
@@ -129,21 +129,22 @@ int safe_system(char *comando)
 dir leer_directorio(char *path_carpeta)
 {
     const char *archivos_path = "archivos.txt";
-
+    
+    //Construyo el comando para listar los archivos de la carpeta y guardarlos en un txt
     size_t len = strlen("cd ") + strlen(path_carpeta) + strlen(" && ls > ../../") + strlen(archivos_path) + 1;
     char *comando = safe_malloc(len);
     snprintf(comando, len, "cd %s && ls > ../../%s", path_carpeta, archivos_path);
     safe_system(comando);
     free(comando);
 
-    FILE *archivosTxt = safe_fopen(archivos_path, "r");
+    FILE *archivosTxt = safe_fopen(archivos_path, "r"); //Archivos.txt es un archivo temporal que contiene los nombres de los archivos de la carpeta
 
     char line[256];
     char **nombres = malloc(sizeof(*nombres));
     FILE **archivos = malloc(sizeof(*archivos));
     int index = -1;
 
-    while (fgets(line, sizeof(line), archivosTxt))
+    while (fgets(line, sizeof(line), archivosTxt)) //Recorro el archivo temporal con los nombres de los archivos del directorio
     {
         index++;
         char *archivo = safe_malloc(strlen(line) + 1);
@@ -152,12 +153,7 @@ dir leer_directorio(char *path_carpeta)
 
         nombres = safe_realloc(nombres, sizeof(*nombres) * (index + 1));
         size_t len = strlen(archivo);
-        printf("%s\n%zu\n", archivo, len);
-        if (archivo[len - 1] == '\n') {
-            archivo[len - 1] = '\0';
-            len--;
-        }
-        printf("%s\n%zu\n", archivo, len);
+        archivo[len-- - 1] = '\0'; //Saco el salto de linea y resto 1 a len
         nombres[index] = safe_malloc(len + 1);
         strcpy(nombres[index], archivo);
 
@@ -175,12 +171,12 @@ dir leer_directorio(char *path_carpeta)
 
     dir directorio = {archivos, nombres, index + 1};
 
-   fclose(archivosTxt);
+    fclose(archivosTxt);
     safe_system("rm archivos.txt");
     return directorio;
 }
 
-void free_dir(dir directorio) //FIXME: Creo que esto me da error en valgrind
+void free_dir(dir directorio)
 {
     for (int i = 0; i < directorio.cantidad; i++)
     {
@@ -192,19 +188,27 @@ void free_dir(dir directorio) //FIXME: Creo que esto me da error en valgrind
         free(directorio.nombres[i]);
     }
     free(directorio.nombres);
-
 }
 
-/* void tests(){
-    char *path = path_textos("Fito_Paez");
-    assert(strcmp(path, "Textos/Fito_Paez") == 0);
+void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, en caso que no sea mucho bardo, si no, lo dejo asi.
+{
+    //Testeo de path_textos
+    char *path = path_textos("hello_world");
+    assert(strcmp(path, "Textos/hello_world") == 0);
     free(path);
 
+    //Testeo de leer_directorio
     dir directorio = leer_directorio("Textos/hello_world");
-    assert(directorio.cantidad == 2);
-    
+    assert(sizeof(directorio) == sizeof(dir));
+    assert(directorio.archivos != NULL);
+    assert(directorio.cantidad == 4);
+    assert(strcmp(directorio.nombres[0], "!.txt") == 0);
+    assert(directorio.archivos[0] != NULL);
+
     free_dir(directorio);
-} */
+    
+    printf("[ \xE2\x9C\x93 ] All tests passed.\n"); // check symbol
+}
 
 int main(int argc, char *argv[])
 {
@@ -218,11 +222,12 @@ int main(int argc, char *argv[])
         fprintf(stderr, "ERROR: Se espera al menos un argumento.\n");
         exit(EXIT_FAILURE);
     }
-
+    tests();
+    
     char *path = path_textos(argv[1]);
     dir directorio = leer_directorio(path);
 
-    /* for (int i = 0; i < directorio.cantidad; i++)
+    for (int i = 0; i < directorio.cantidad; i++)
     {
         printf(" ---- %s ----\n", directorio.nombres[i]);
         char line[256];
@@ -231,7 +236,7 @@ int main(int argc, char *argv[])
             printf("%s", line);
         }
         printf("\n");
-    } */
+    }
     free(path);
     free_dir(directorio);
     return EXIT_SUCCESS;
