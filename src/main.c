@@ -210,6 +210,28 @@ void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, e
     printf("[ \xE2\x9C\x93 ] All tests passed.\n"); // check symbol
 }
 
+char normalizar_char(char c)
+{
+    if (c >= 'a' && c <= 'z') return c;
+    else if (c >= 'A' && c <= 'Z') return c + 32;
+    else if (c == '\n') return ' ';
+    else if (c == '.') return '\n'; //TODO: Cambiar esto en base si voy a pasarle a la funcion una unica linea o todo el contenido del archivo.
+    else if (c == ' ') return ' ';
+    else return '\0';
+}
+
+char* normalizar_str(char* texto)
+{
+    char* texto_normalizado = safe_malloc(strlen(texto) + 1);
+    int idx = 0;
+
+    char norm_char;
+    while (*texto) if ((norm_char = normalizar_char(*texto++))) texto_normalizado[idx++] = norm_char; // Solo guardo los caracteres si cumplen con la condicion de normalizacion
+
+    texto_normalizado[idx] = '\0';
+    texto_normalizado = safe_realloc(texto_normalizado, idx + 1);
+    return texto_normalizado;
+}
 int main(int argc, char *argv[])
 {
     if (argc > 2)
@@ -237,6 +259,11 @@ int main(int argc, char *argv[])
         }
         printf("\n");
     }
+
+    char * texto_normalizado = normalizar_str("HOLA\nCOMO ESTAaS!!, me llamo RA-Ul y me Gusta [el] PENé. es útil para escriviR!!!!?\\?'??¡-__-uwu\n");
+    printf("%s\n", texto_normalizado);
+    free(texto_normalizado);
+    
     free(path);
     free_dir(directorio);
     return EXIT_SUCCESS;
