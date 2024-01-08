@@ -32,7 +32,7 @@ Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/window
 Para compilar y correr el programa rápidamente ejecute:
 
  ```sh
-  gcc -g -Wall -o bin/hello_world src/main.c && bin/hello_world [arg]
+  gcc -g -Wall -o bin/hello_world src/main.c && bin/hello_world {{arg}}
   ```
 
 ## Tests
