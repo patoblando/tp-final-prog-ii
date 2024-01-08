@@ -12,7 +12,7 @@
 Un programa simple de predicción de texto hecho en c y Python como trabajo final de la materia "Programación II" en la carrera de Licenciatura en Ciencias de la Computación de la UNR.
 
 ## Prerequisitos
-**El programa es compatible _solo_ con sistemas Unxi
+**El programa es compatible _solo_ con sistemas Unix
 Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/windows/wsl/install)**
 
 - GCC (https://gcc.gnu.org/)
@@ -37,4 +37,4 @@ Para compilar y correr el programa rápidamente ejecute:
 
 ## Tests
 
-Los tests fallaran si el programa no puede encontrar el directorio Textos/hello_world
+Los tests fallaran si el programa no puede encontrar el directorio Textos/hello_world con sus archivos adentro
