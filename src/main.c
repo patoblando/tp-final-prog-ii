@@ -190,25 +190,6 @@ void free_dir(dir directorio)
     free(directorio.nombres);
 }
 
-void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, en caso que no sea mucho bardo, si no, lo dejo asi.
-{
-    //Testeo de path_textos
-    char *path = path_textos("hello_world");
-    assert(strcmp(path, "Textos/hello_world") == 0);
-    free(path);
-
-    //Testeo de leer_directorio
-    dir directorio = leer_directorio("Textos/hello_world");
-    assert(sizeof(directorio) == sizeof(dir));
-    assert(directorio.archivos != NULL);
-    assert(directorio.cantidad == 4);
-    assert(strcmp(directorio.nombres[0], "!.txt") == 0);
-    assert(directorio.archivos[0] != NULL);
-
-    free_dir(directorio);
-    
-    printf("[ \xE2\x9C\x93 ] All tests passed.\n"); // check symbol
-}
 
 char normalizar_char(char c)
 {
@@ -232,6 +213,40 @@ char* normalizar_str(char* texto)
     texto_normalizado = safe_realloc(texto_normalizado, idx + 1);
     return texto_normalizado;
 }
+
+void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, en caso que no sea mucho bardo, si no, lo dejo asi.
+{
+    //Testeo de path_textos
+    char *path = path_textos("hello_world");
+    assert(strcmp(path, "Textos/hello_world") == 0);
+    free(path);
+
+    //Testeo de leer_directorio
+    dir directorio = leer_directorio("Textos/hello_world");
+    assert(sizeof(directorio) == sizeof(dir));
+    assert(directorio.archivos != NULL);
+    assert(directorio.cantidad == 4);
+    assert(strcmp(directorio.nombres[0], "!.txt") == 0);
+    assert(directorio.archivos[0] != NULL);
+    free_dir(directorio);
+
+    //Testeo de normalizar_strg
+    char* texto;
+    assert(!strcmp(texto = normalizar_str("Buenos dIAs,, ¿como estas? Es5to e43s UN lo--rem i-p-s-u-m"), "buenos dias como estas esto es un lorem ipsum"));
+    free(texto);
+    assert(!strcmp(texto = normalizar_str("/"), ""));
+    free(texto);
+    assert(!strcmp(texto = normalizar_str(" "), " "));
+    free(texto);
+    assert(!strcmp(texto = normalizar_str("HOLA AMIGO"), "hola amigo"));
+    free(texto);
+    assert(!strcmp(texto = normalizar_str("388-/hola"), "hola"));
+    free(texto);
+
+    
+    printf("[ \xE2\x9C\x93 ] All tests passed.\n"); // check symbol
+}
+
 int main(int argc, char *argv[])
 {
     if (argc > 2)
