@@ -247,6 +247,23 @@ void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, e
     printf("[ \xE2\x9C\x93 ] All tests passed.\n"); // check symbol
 }
 
+char* normalizar(char* texto)
+{
+    char* texto_normalizado = safe_malloc(strlen(texto) + 1);
+    int idx = 0;
+    for (int i = 0; texto[i]; i++)
+    {
+        if (texto[idx] >= 'A' && texto[idx] <= 'Z') texto_normalizado[idx++] = texto[i] + 32;
+        else if (texto[i] == '\n') texto_normalizado[idx++] = ' ';
+        else if (texto[i] == '.') texto_normalizado[idx++] = '\n';
+        else if (texto[i] == ' ') texto_normalizado[idx++] = ' ';
+        else if (texto[i] >= 'a' && texto[i] <= 'z') texto_normalizado[idx++] = texto[i];
+        else continue;
+    } // idx solo se incrementa si se ejecuta alguno de los if, y se incrementa DESPUES de asignar el caracter a texto_normalizado
+    texto_normalizado[idx] = '\0';
+    texto_normalizado = safe_realloc(texto_normalizado, idx + 1);
+    return texto_normalizado;
+}
 int main(int argc, char *argv[])
 {
     if (argc > 2)
