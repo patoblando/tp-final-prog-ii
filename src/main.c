@@ -29,6 +29,7 @@ en los textos que no est´en al final de una oraci´on deber´an quitarse tambi�
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
+#define ARCHIVOS_TEMP "archivos.txt"
 
 /* FILE * abrir_archivo(char *path)
 {
@@ -125,19 +126,20 @@ int safe_system(char *comando)
     }
     return sys_err;
 }
+void leer_nombres(char* path_carpeta){
+    //Construyo el comando para listar los archivos de la carpeta y guardarlos en un txt
+    size_t len = strlen("cd ") + strlen(path_carpeta) + strlen(" && ls > ../../") + strlen(ARCHIVOS_TEMP) + 1;
+    char *comando = safe_malloc(len);
+    snprintf(comando, len, "cd %s && ls > ../../%s", path_carpeta, ARCHIVOS_TEMP);
+    safe_system(comando);
+    free(comando);
+}
 
 dir leer_directorio(char *path_carpeta)
 {
-    const char *archivos_path = "archivos.txt";
-    
-    //Construyo el comando para listar los archivos de la carpeta y guardarlos en un txt
-    size_t len = strlen("cd ") + strlen(path_carpeta) + strlen(" && ls > ../../") + strlen(archivos_path) + 1;
-    char *comando = safe_malloc(len);
-    snprintf(comando, len, "cd %s && ls > ../../%s", path_carpeta, archivos_path);
-    safe_system(comando);
-    free(comando);
+    leer_nombres(path_carpeta);
 
-    FILE *archivosTxt = safe_fopen(archivos_path, "r"); //Archivos.txt es un archivo temporal que contiene los nombres de los archivos de la carpeta
+    FILE *archivosTxt = safe_fopen(ARCHIVOS_TEMP, "r"); //Archivos.txt es un archivo temporal que contiene los nombres de los archivos de la carpeta
 
     char line[256];
     char **nombres = malloc(sizeof(*nombres));
@@ -190,6 +192,30 @@ void free_dir(dir directorio)
     free(directorio.nombres);
 }
 
+
+char normalizar_char(char c)
+{
+    if (c >= 'a' && c <= 'z') return c;
+    else if (c >= 'A' && c <= 'Z') return c + 32;
+    else if (c == '\n') return ' ';
+    else if (c == '.') return '\n'; //TODO: Cambiar esto en base si voy a pasarle a la funcion una unica linea o todo el contenido del archivo.
+    else if (c == ' ') return ' ';
+    else return '\0';
+}
+
+char* normalizar_str(char* texto)
+{
+    char* texto_normalizado = safe_malloc(strlen(texto) + 1);
+    int idx = 0;
+
+    char norm_char;
+    while (*texto) if ((norm_char = normalizar_char(*texto++))) texto_normalizado[idx++] = norm_char; // Solo guardo los caracteres si cumplen con la condicion de normalizacion
+
+    texto_normalizado[idx] = '\0';
+    texto_normalizado = safe_realloc(texto_normalizado, idx + 1);
+    return texto_normalizado;
+}
+
 void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, en caso que no sea mucho bardo, si no, lo dejo asi.
 {
     //Testeo de path_textos
@@ -204,12 +230,42 @@ void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, e
     assert(directorio.cantidad == 4);
     assert(strcmp(directorio.nombres[0], "!.txt") == 0);
     assert(directorio.archivos[0] != NULL);
-
     free_dir(directorio);
+
+    //Testeo de normalizar_strg
+    char* texto;
+    assert(!strcmp(texto = normalizar_str("Buenos dIAs,, ¿como estas? Es5to e43s UN lo--rem i-p-s-u-m"), "buenos dias como estas esto es un lorem ipsum"));
+    free(texto);
+    assert(!strcmp(texto = normalizar_str("/"), ""));
+    free(texto);
+    assert(!strcmp(texto = normalizar_str(" "), " "));
+    free(texto);
+    assert(!strcmp(texto = normalizar_str("HOLA AMIGO"), "hola amigo"));
+    free(texto);
+    assert(!strcmp(texto = normalizar_str("388-/hola"), "hola"));
+    free(texto);
+
     
     printf("[ \xE2\x9C\x93 ] All tests passed.\n"); // check symbol
 }
 
+char* normalizar(char* texto)
+{
+    char* texto_normalizado = safe_malloc(strlen(texto) + 1);
+    int idx = 0;
+    for (int i = 0; texto[i]; i++)
+    {
+        if (texto[idx] >= 'A' && texto[idx] <= 'Z') texto_normalizado[idx++] = texto[i] + 32;
+        else if (texto[i] == '\n') texto_normalizado[idx++] = ' ';
+        else if (texto[i] == '.') texto_normalizado[idx++] = '\n';
+        else if (texto[i] == ' ') texto_normalizado[idx++] = ' ';
+        else if (texto[i] >= 'a' && texto[i] <= 'z') texto_normalizado[idx++] = texto[i];
+        else continue;
+    } // idx solo se incrementa si se ejecuta alguno de los if, y se incrementa DESPUES de asignar el caracter a texto_normalizado
+    texto_normalizado[idx] = '\0';
+    texto_normalizado = safe_realloc(texto_normalizado, idx + 1);
+    return texto_normalizado;
+}
 int main(int argc, char *argv[])
 {
     if (argc > 2)
@@ -237,6 +293,11 @@ int main(int argc, char *argv[])
         }
         printf("\n");
     }
+
+    char * texto_normalizado = normalizar_str("HOLA\nCOMO ESTAaS!!, me llamo RA-Ul y me Gusta [el] PENé. es útil para escriviR!!!!?\\?'??¡-__-uwu\n");
+    printf("%s\n", texto_normalizado);
+    free(texto_normalizado);
+    
     free(path);
     free_dir(directorio);
     return EXIT_SUCCESS;
