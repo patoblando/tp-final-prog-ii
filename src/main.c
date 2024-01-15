@@ -29,6 +29,7 @@ en los textos que no est´en al final de una oraci´on deber´an quitarse tambi�
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
+#define ARCHIVOS_TEMP "archivos.txt"
 
 /* FILE * abrir_archivo(char *path)
 {
@@ -125,19 +126,20 @@ int safe_system(char *comando)
     }
     return sys_err;
 }
+void leer_nombres(char* path_carpeta){
+    //Construyo el comando para listar los archivos de la carpeta y guardarlos en un txt
+    size_t len = strlen("cd ") + strlen(path_carpeta) + strlen(" && ls > ../../") + strlen(ARCHIVOS_TEMP) + 1;
+    char *comando = safe_malloc(len);
+    snprintf(comando, len, "cd %s && ls > ../../%s", path_carpeta, ARCHIVOS_TEMP);
+    safe_system(comando);
+    free(comando);
+}
 
 dir leer_directorio(char *path_carpeta)
 {
-    const char *archivos_path = "archivos.txt";
-    
-    //Construyo el comando para listar los archivos de la carpeta y guardarlos en un txt
-    size_t len = strlen("cd ") + strlen(path_carpeta) + strlen(" && ls > ../../") + strlen(archivos_path) + 1;
-    char *comando = safe_malloc(len);
-    snprintf(comando, len, "cd %s && ls > ../../%s", path_carpeta, archivos_path);
-    safe_system(comando);
-    free(comando);
+    leer_nombres(path_carpeta);
 
-    FILE *archivosTxt = safe_fopen(archivos_path, "r"); //Archivos.txt es un archivo temporal que contiene los nombres de los archivos de la carpeta
+    FILE *archivosTxt = safe_fopen(ARCHIVOS_TEMP, "r"); //Archivos.txt es un archivo temporal que contiene los nombres de los archivos de la carpeta
 
     char line[256];
     char **nombres = malloc(sizeof(*nombres));
