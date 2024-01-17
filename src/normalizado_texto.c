@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -6,8 +5,10 @@
 #include <errno.h>
 #include <assert.h>
 #include <sys/types.h>
+
 #define ARCHIVOS_TEMP "archivos.txt"
 #define OUT_PATH "Entradas/"
+#define PYTHON_PROGRAM "prediccion_texto.py"
 
 typedef struct _dir
 {
@@ -127,7 +128,13 @@ dir leer_directorio(char *path_carpeta)
     dir directorio = {archivos, nombres, index + 1};
 
     fclose(archivosTxt);
-    safe_system("rm archivos.txt");
+
+    // rm ARCHIVOS_TEMP
+    size_t len = strlen("rm ") + strlen(ARCHIVOS_TEMP) + 1;
+    char *comando = safe_malloc(len);
+    snprintf(comando, len, "rm %s", ARCHIVOS_TEMP);
+    safe_system(comando);
+    free(comando);
     return directorio;
 }
 
@@ -145,17 +152,16 @@ void free_dir(dir directorio)
     free(directorio.nombres);
 }
 
-
-
-
 char normalizar_char(char c)
 {
-    if (c >= 'a' && c <= 'z') return c;
+    if islower(c) return c;
     else if (isupper(c)) return tolower(c);
-    else if (c == '\n') return ' ';
-    else if (c == '.') return '\n'; //TODO: Cambiar esto en base si voy a pasarle a la funcion una unica linea o todo el contenido del archivo.
-    else if (c == ' ') return ' ';
-    else return '\0';
+    else switch(c){
+        case '\n' : return ' ';
+        case '.' : return '\n';
+        case ' ' : return ' ';
+        default : return '\0';
+    }
 }
 
 char* normalizar_str(char* texto)
@@ -164,28 +170,42 @@ char* normalizar_str(char* texto)
     int idx = 0;
 
     char norm_char;
-    while (*texto) if ((norm_char = normalizar_char(*texto++))) texto_normalizado[idx++] = norm_char; // Solo guardo los caracteres si cumplen con la condicion de normalizacion
-
+    // Recorro el texto y los guardo en texto_normalizado
+    while (*texto) if ((norm_char = normalizar_char(*texto++))) texto_normalizado[idx++] = norm_char; 
     texto_normalizado[idx] = '\0';
     texto_normalizado = safe_realloc(texto_normalizado, idx + 1);
+    //Saco los espacios despues del punto
+    if (*texto_normalizado == ' ') {
+        char* new_normal_text = safe_malloc(strlen(texto_normalizado));
+        *new_normal_text = '\0';
+        strcpy(new_normal_text, texto_normalizado + 1);
+        return new_normal_text;
+    }
     return texto_normalizado;
 }
 
-int normalizar_archivo(FILE* archivo, char* path_salida) 
+int write_archivo_normalizado(FILE* archivo, FILE* salida)
 {
-    FILE* salida = safe_fopen(path_salida, "w");
-    char* linea = NULL;
+    char* texto = NULL;
     size_t len = 0;
     ssize_t read;
-    while ((read = getline(&linea, &len, archivo)) != -1) // TODO: Repensar esto, si voy por linea, hay algnas oraciones multilinea y no funciona
+    while ((read = getdelim(&texto, &len, '.', archivo)) != -1) 
     {
-        char* linea_normalizada = normalizar_str(linea);
+        char* linea_normalizada = normalizar_str(texto);
         fputs(linea_normalizada, salida);
         free(linea_normalizada);
     }
-    free(linea);
-    safe_fclose(salida);
+    free(texto);
     return 0;
+}
+
+void normalizar_dir(dir directorio, char* path_salida)
+{   
+    FILE* salida = safe_fopen(path_salida, "w");
+
+    for (int i = 0; i < directorio.cantidad; i++) write_archivo_normalizado(directorio.archivos[i], salida);
+
+    safe_fclose(salida);
 }
 
 void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, en caso que no sea mucho bardo, si no, lo dejo asi.
@@ -210,7 +230,7 @@ void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, e
     free(texto);
     assert(!strcmp(texto = normalizar_str("/"), ""));
     free(texto);
-    assert(!strcmp(texto = normalizar_str(" "), " "));
+    assert(!strcmp(texto = normalizar_str(" "), ""));
     free(texto);
     assert(!strcmp(texto = normalizar_str("HOLA AMIGO"), "hola amigo"));
     free(texto);
@@ -218,8 +238,18 @@ void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, e
     free(texto);
 
     
-    printf("[ \xE2\x9C\x93 ] All tests passed.\n"); // check symbol
+    printf("[ \xE2\x9C\x93 ] All tests passed.\n"); // check symbol TODO: Mover esto a los tests de python cuando esten hechos.
 }
+
+void run_python(char* arg)
+{
+    size_t len = strlen("python3 ") + strlen(PYTHON_PROGRAM) + strlen(" ") + strlen(arg) + 1;
+    char *comando = safe_malloc(len);
+    snprintf(comando, len, "python3 %s %s", PYTHON_PROGRAM, arg);
+    safe_system(comando);
+    free(comando);
+}
+
 int main(int argc, char *argv[])
 {
     if (argc > 2)
@@ -239,16 +269,12 @@ int main(int argc, char *argv[])
 
     char* out_file_path = safe_malloc(strlen(OUT_PATH) + strlen(argv[1]) + strlen(".txt") + 1);
     snprintf(out_file_path, strlen(OUT_PATH) + strlen(argv[1]) + strlen(".txt") + 1, "%s%s%s", OUT_PATH, argv[1], ".txt");
-
-    for (int i = 0; i < directorio.cantidad; i++) normalizar_archivo(directorio.archivos[i], out_file_path);
-
+    normalizar_dir(directorio, out_file_path);
     free(out_file_path);
-
-    char * texto_normalizado = normalizar_str("HOLA\nCOMO ESTAaS!!, me llamo RA-Ul y me Gusta [el] PENé. es útil para escriviR!!!!?\\?'??¡-__-uwu\n");
-    printf("%s\n", texto_normalizado);
-    free(texto_normalizado);
     
     free(path);
     free_dir(directorio);
+
+    run_python(argv[1]);
     return EXIT_SUCCESS;
 }

@@ -32,9 +32,10 @@ Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/window
 Para compilar y correr el programa rápidamente ejecute:
 
  ```sh
-  gcc -g -Wall -o bin/hello_world src/main.c && bin/hello_world {{arg}}
+  gcc -g -Wall -o bin/hello_world src/normalizado_texto.c && bin/start {{arg}}
   ```
 
 ## Tests
 
-Los tests fallaran si el programa no puede encontrar el directorio Textos/hello_world con sus archivos adentro
+Los tests del programa en C fallaran si el programa no puede encontrar el directorio Textos/hello_world con sus archivos adentro.
+No modifiques estos archivos o el programa no funcionara correctamente.
