@@ -1,60 +1,14 @@
-/*
-El programa en C tomar´a como argumento el nombre de la persona cuyos textos se van a analizar.
-Dicho nombre no deber´a contener espacios, en caso de que el nombre contenga m´as de una palabra,
-estas deber´an estar separadas por guiones bajos. Por ejemplo, si quisi´eramos analizar textos escritos por
-Fito Paez, el argumento de entrada del programa deber´ıa ser Fito Paez. En el mismo directorio que el
-programa se contar´a con una carpeta llamada Textos. Dentro de la misma podremos encontrar una serie
-de carpetas, cada una de las cuales tendr´a el nombre de una persona respetando el mismo formato que
-tiene el nombre recibido como argumento.
-El programa deber´a acceder a la carpeta que corresponde al nombre recibido y procesar todos los archivos
-que se encuentren dentro. Cada archivo contendr´a un texto que puede estar formado por muchas oraciones, puede contener saltos de l´ınea en cualquier lugar y tambi´en s´ımbolos de todo tipo (por ejemplo:
-coma, punto y coma, gui´on, signos de pregunta, etc.). En los textos a analizar no habr´a palabras con
-tilde ni letras especiales como la ~n. El objetivo es limpiar todos los textos y unificarlos en un ´unico
-archivo de salida que deber´a tener las siguientes caracter´ısticas:
-• El archivo deber´a tener el mismo nombre que la carpeta inspeccionada, es decir, el nombre recibido
-como argumento. El mismo tendr´a la extensi´on .txt.
-• El archivo generado deber´a ubicarse dentro de una carpeta llamada Entradas, la cual tambi´en se
-encontrar´a en el mismo directorio que el programa actual.
-• Dentro del archivo s´olo deber´a haber caracteres correspondientes a letras min´usculas y saltos de
-l´ınea. Deber´an quitarse todos los s´ımbolos que se encuentren en los textos analizados y las letras
-may´usculas deber´an pasarse a min´uscula.
-• Cada l´ınea del archivo deber´a corresponder a una oraci´on de uno de los textos analizados. Se puede
-identificar el fin de una oraci´on por la presencia del punto. Los saltos de l´ınea que se encuentren
-en los textos que no est´en al final de una oraci´on deber´an quitarse tambi´en.
-
-*/
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <errno.h>
 #include <assert.h>
+#include <sys/types.h>
+
 #define ARCHIVOS_TEMP "archivos.txt"
-
-/* FILE * abrir_archivo(char *path)
-{
-    FILE *fp;
-    fp = safe_fopen(path, "r");
-    if (fp == NULL)
-    {
-        fprintf(stderr, "ERROR: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    return fp;
-}
-
-char * leer_archivo(FILE *fp)
-{
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
-    while ((read = getline(&line, &len, fp)) != -1)
-    {
-        printf("Retrieved line of length %zu:\n", read);
-        printf("%s", line);
-    }
-    return line;
-} */
+#define OUT_PATH "Entradas/"
+#define PYTHON_PROGRAM "prediccion_texto.py"
 
 typedef struct _dir
 {
@@ -145,7 +99,7 @@ dir leer_directorio(char *path_carpeta)
     char **nombres = malloc(sizeof(*nombres));
     FILE **archivos = malloc(sizeof(*archivos));
     int index = -1;
-
+    //TODO: Ver si puedo usar getline en vez de fgets.
     while (fgets(line, sizeof(line), archivosTxt)) //Recorro el archivo temporal con los nombres de los archivos del directorio
     {
         index++;
@@ -174,7 +128,13 @@ dir leer_directorio(char *path_carpeta)
     dir directorio = {archivos, nombres, index + 1};
 
     fclose(archivosTxt);
-    safe_system("rm archivos.txt");
+
+    // rm ARCHIVOS_TEMP
+    size_t len = strlen("rm ") + strlen(ARCHIVOS_TEMP) + 1;
+    char *comando = safe_malloc(len);
+    snprintf(comando, len, "rm %s", ARCHIVOS_TEMP);
+    safe_system(comando);
+    free(comando);
     return directorio;
 }
 
@@ -192,15 +152,16 @@ void free_dir(dir directorio)
     free(directorio.nombres);
 }
 
-
 char normalizar_char(char c)
 {
-    if (c >= 'a' && c <= 'z') return c;
-    else if (c >= 'A' && c <= 'Z') return c + 32;
-    else if (c == '\n') return ' ';
-    else if (c == '.') return '\n'; //TODO: Cambiar esto en base si voy a pasarle a la funcion una unica linea o todo el contenido del archivo.
-    else if (c == ' ') return ' ';
-    else return '\0';
+    if islower(c) return c;
+    else if (isupper(c)) return tolower(c);
+    else switch(c){
+        case '\n' : return ' ';
+        case '.' : return '\n';
+        case ' ' : return ' ';
+        default : return '\0';
+    }
 }
 
 char* normalizar_str(char* texto)
@@ -209,11 +170,42 @@ char* normalizar_str(char* texto)
     int idx = 0;
 
     char norm_char;
-    while (*texto) if ((norm_char = normalizar_char(*texto++))) texto_normalizado[idx++] = norm_char; // Solo guardo los caracteres si cumplen con la condicion de normalizacion
-
+    // Recorro el texto y los guardo en texto_normalizado
+    while (*texto) if ((norm_char = normalizar_char(*texto++))) texto_normalizado[idx++] = norm_char; 
     texto_normalizado[idx] = '\0';
     texto_normalizado = safe_realloc(texto_normalizado, idx + 1);
+    //Saco los espacios despues del punto
+    if (*texto_normalizado == ' ') {
+        char* new_normal_text = safe_malloc(strlen(texto_normalizado));
+        *new_normal_text = '\0';
+        strcpy(new_normal_text, texto_normalizado + 1);
+        return new_normal_text;
+    }
     return texto_normalizado;
+}
+
+int write_archivo_normalizado(FILE* archivo, FILE* salida)
+{
+    char* texto = NULL;
+    size_t len = 0;
+    ssize_t read;
+    while ((read = getdelim(&texto, &len, '.', archivo)) != -1) 
+    {
+        char* linea_normalizada = normalizar_str(texto);
+        fputs(linea_normalizada, salida);
+        free(linea_normalizada);
+    }
+    free(texto);
+    return 0;
+}
+
+void normalizar_dir(dir directorio, char* path_salida)
+{   
+    FILE* salida = safe_fopen(path_salida, "w");
+
+    for (int i = 0; i < directorio.cantidad; i++) write_archivo_normalizado(directorio.archivos[i], salida);
+
+    safe_fclose(salida);
 }
 
 void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, en caso que no sea mucho bardo, si no, lo dejo asi.
@@ -232,13 +224,13 @@ void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, e
     assert(directorio.archivos[0] != NULL);
     free_dir(directorio);
 
-    //Testeo de normalizar_strg
+    //Testeo de normalizar_str
     char* texto;
     assert(!strcmp(texto = normalizar_str("Buenos dIAs,, ¿como estas? Es5to e43s UN lo--rem i-p-s-u-m"), "buenos dias como estas esto es un lorem ipsum"));
     free(texto);
     assert(!strcmp(texto = normalizar_str("/"), ""));
     free(texto);
-    assert(!strcmp(texto = normalizar_str(" "), " "));
+    assert(!strcmp(texto = normalizar_str(" "), ""));
     free(texto);
     assert(!strcmp(texto = normalizar_str("HOLA AMIGO"), "hola amigo"));
     free(texto);
@@ -246,30 +238,22 @@ void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, e
     free(texto);
 
     
-    printf("[ \xE2\x9C\x93 ] All tests passed.\n"); // check symbol
+    printf("[ \xE2\x9C\x93 ] All tests passed.\n"); // check symbol TODO: Mover esto a los tests de python cuando esten hechos.
 }
 
-char* normalizar(char* texto)
+void run_python(char* arg)
 {
-    char* texto_normalizado = safe_malloc(strlen(texto) + 1);
-    int idx = 0;
-    for (int i = 0; texto[i]; i++)
-    {
-        if (texto[idx] >= 'A' && texto[idx] <= 'Z') texto_normalizado[idx++] = texto[i] + 32;
-        else if (texto[i] == '\n') texto_normalizado[idx++] = ' ';
-        else if (texto[i] == '.') texto_normalizado[idx++] = '\n';
-        else if (texto[i] == ' ') texto_normalizado[idx++] = ' ';
-        else if (texto[i] >= 'a' && texto[i] <= 'z') texto_normalizado[idx++] = texto[i];
-        else continue;
-    } // idx solo se incrementa si se ejecuta alguno de los if, y se incrementa DESPUES de asignar el caracter a texto_normalizado
-    texto_normalizado[idx] = '\0';
-    texto_normalizado = safe_realloc(texto_normalizado, idx + 1);
-    return texto_normalizado;
+    size_t len = strlen("python3 ") + strlen(PYTHON_PROGRAM) + strlen(" ") + strlen(arg) + 1;
+    char *comando = safe_malloc(len);
+    snprintf(comando, len, "python3 %s %s", PYTHON_PROGRAM, arg);
+    safe_system(comando);
+    free(comando);
 }
+
 int main(int argc, char *argv[])
 {
     if (argc > 2)
-    {
+    {   
         fprintf(stderr, "ERROR: Demasiados argumentos.\n");
         exit(EXIT_FAILURE);
     }
@@ -283,22 +267,14 @@ int main(int argc, char *argv[])
     char *path = path_textos(argv[1]);
     dir directorio = leer_directorio(path);
 
-    for (int i = 0; i < directorio.cantidad; i++)
-    {
-        printf(" ---- %s ----\n", directorio.nombres[i]);
-        char line[256];
-        while (fgets(line, sizeof(line), directorio.archivos[i]))
-        {
-            printf("%s", line);
-        }
-        printf("\n");
-    }
-
-    char * texto_normalizado = normalizar_str("HOLA\nCOMO ESTAaS!!, me llamo RA-Ul y me Gusta [el] PENé. es útil para escriviR!!!!?\\?'??¡-__-uwu\n");
-    printf("%s\n", texto_normalizado);
-    free(texto_normalizado);
+    char* out_file_path = safe_malloc(strlen(OUT_PATH) + strlen(argv[1]) + strlen(".txt") + 1);
+    snprintf(out_file_path, strlen(OUT_PATH) + strlen(argv[1]) + strlen(".txt") + 1, "%s%s%s", OUT_PATH, argv[1], ".txt");
+    normalizar_dir(directorio, out_file_path);
+    free(out_file_path);
     
     free(path);
     free_dir(directorio);
+
+    run_python(argv[1]);
     return EXIT_SUCCESS;
 }
