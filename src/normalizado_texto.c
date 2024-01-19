@@ -95,12 +95,13 @@ dir leer_directorio(char *path_carpeta)
 
     FILE *archivosTxt = safe_fopen(ARCHIVOS_TEMP, "r"); //Archivos.txt es un archivo temporal que contiene los nombres de los archivos de la carpeta
 
-    char line[256];
     char **nombres = malloc(sizeof(*nombres));
     FILE **archivos = malloc(sizeof(*archivos));
     int index = -1;
-    //TODO: Ver si puedo usar getline en vez de fgets.
-    while (fgets(line, sizeof(line), archivosTxt)) //Recorro el archivo temporal con los nombres de los archivos del directorio
+    size_t line_len = 0;
+    char* line = NULL;
+
+    while((getline(&line, &line_len, archivosTxt)) != -1) 
     {
         index++;
         char *archivo = safe_malloc(strlen(line) + 1);
