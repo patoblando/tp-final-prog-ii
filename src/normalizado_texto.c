@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include <errno.h>
 #include <assert.h>
-#include <sys/types.h>
 
 #define ARCHIVOS_TEMP "archivos.txt"
 #define OUT_PATH "Entradas/"
@@ -75,7 +74,8 @@ int safe_system(char *comando)
     int sys_err = system(comando);
     if (sys_err)
     {
-        fprintf(stderr, "Error al ejecutar el comando %s\n", comando); //Intente mostrar el error que devolvia el comando con strerror(errno) pero mostraba "success"
+        fprintf(stderr, "Error al ejecutar el comando %s\n", comando); 
+        //Intente mostrar el error que devolvia el comando cuando fallaba con strerror(errno) pero mostraba "success"
         exit(EXIT_FAILURE);
     }
     return sys_err;
@@ -154,8 +154,8 @@ void free_dir(dir directorio)
 
 char normalizar_char(char c)
 {
-    if islower(c) return c;
-    else if (isupper(c)) return tolower(c);
+    if (islower(c)) return c;
+    else if (isupper(c)) return tolower(c); //Uso isupper, islower y tolower para evitar problemas con otros encodings
     else switch(c){
         case '\n' : return ' ';
         case '.' : return '\n';
@@ -188,8 +188,7 @@ int write_archivo_normalizado(FILE* archivo, FILE* salida)
 {
     char* texto = NULL;
     size_t len = 0;
-    ssize_t read;
-    while ((read = getdelim(&texto, &len, '.', archivo)) != -1) 
+    while ((getdelim(&texto, &len, '.', archivo)) != -1) 
     {
         char* linea_normalizada = normalizar_str(texto);
         fputs(linea_normalizada, salida);
@@ -208,7 +207,7 @@ void normalizar_dir(dir directorio, char* path_salida)
     safe_fclose(salida);
 }
 
-void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, en caso que no sea mucho bardo, si no, lo dejo asi.
+void tests() //Me hubiera encatado modularizar los tests para que no dependan de la carpeta hello_world, pero me hubiera consumido demasiado tiempo.
 {
     //Testeo de path_textos
     char *path = path_textos("hello_world");
@@ -237,15 +236,27 @@ void tests() //TODO: Mover los test a un archivo aparte que se pueda ejecutar, e
     assert(!strcmp(texto = normalizar_str("388-/hola"), "hola"));
     free(texto);
 
+    //Testeo de normalizar_dir
+    directorio = leer_directorio("Textos/hello_world");
+    normalizar_dir(directorio, "test.txt");
+    FILE* test = safe_fopen("test.txt", "r");
+    char* linea = NULL;
+    size_t len = 0;
+    assert((getline(&linea, &len, test)) != -1);
+    assert(!strcmp(linea, "hola como estas esto es un lorem ipsum\n"));
+    safe_fclose(test);
+    free(linea);
+    free_dir(directorio);
+    safe_system("rm test.txt");
     
     printf("[ \xE2\x9C\x93 ] All tests passed.\n"); // check symbol TODO: Mover esto a los tests de python cuando esten hechos.
 }
 
 void run_python(char* arg)
 {
-    size_t len = strlen("python3 ") + strlen(PYTHON_PROGRAM) + strlen(" ") + strlen(arg) + 1;
+    size_t len = strlen("python3 ") + strlen("src/") + strlen(PYTHON_PROGRAM) + strlen(" ") + strlen(arg) + 1;
     char *comando = safe_malloc(len);
-    snprintf(comando, len, "python3 %s %s", PYTHON_PROGRAM, arg);
+    snprintf(comando, len, "python3 src/%s %s", PYTHON_PROGRAM, arg);
     safe_system(comando);
     free(comando);
 }
@@ -275,6 +286,6 @@ int main(int argc, char *argv[])
     free(path);
     free_dir(directorio);
 
-    run_python(argv[1]);
+    //run_python(argv[1]);
     return EXIT_SUCCESS;
 }
