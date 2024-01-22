@@ -27,6 +27,7 @@ char* normalizar_str(char* texto)
         char* new_normal_text = safe_malloc(strlen(texto_normalizado));
         *new_normal_text = '\0';
         strcpy(new_normal_text, texto_normalizado + 1);
+        free(texto_normalizado);
         return new_normal_text;
     }
     return texto_normalizado;

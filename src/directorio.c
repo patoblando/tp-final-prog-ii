@@ -45,6 +45,7 @@ dir leer_directorio(char *path_carpeta)
         free(path_archivo);
         free(archivo);
     }
+    free(line);
 
     dir directorio = {archivos, nombres, index + 1};
 
