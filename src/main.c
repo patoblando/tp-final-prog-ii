@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
     char* out_file_path = safe_malloc(strlen(OUT_PATH) + strlen(argv[1]) + strlen(".txt") + 1);
     snprintf(out_file_path, strlen(OUT_PATH) + strlen(argv[1]) + strlen(".txt") + 1, "%s%s%s", OUT_PATH, argv[1], ".txt");
-    normalizar_dir(directorio, out_file_path);
+    write_directorio_normalizado(directorio, out_file_path);
     free(out_file_path);
     
     free(path);

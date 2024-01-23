@@ -29,7 +29,7 @@ int write_archivo_normalizado(FILE* archivo, FILE* salida);
 /**
  * Normaliza todos los archivos en un directorio.
  */
-void normalizar_dir(dir directorio, char* path_salida);
+void write_directorio_normalizado(dir directorio, char* path_salida);
 
 /**
  * Ejecuta un programa Python.

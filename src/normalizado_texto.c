@@ -47,7 +47,7 @@ int write_archivo_normalizado(FILE* archivo, FILE* salida)
     return 0;
 }
 
-void normalizar_dir(dir directorio, char* path_salida)
+void write_directorio_normalizado(dir directorio, char* path_salida)
 {   
     FILE* salida = safe_fopen(path_salida, "w");
 
