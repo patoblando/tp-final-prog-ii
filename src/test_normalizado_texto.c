@@ -1,6 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "../include/normalizado_texto.h"
+#include <assert.h>
 void test_path_textos() 
 {
     //Testeo de path_textos
@@ -37,6 +36,7 @@ void test_normalizar_str()
 }
 void test_normalizar_dir()
 {
+    //Testeo de normalizar dir
     dir directorio = leer_directorio("Textos/hello_world");
     write_directorio_normalizado(directorio, "test.txt");
     FILE* test = safe_fopen("test.txt", "r");

@@ -25,7 +25,6 @@ int main(int argc, char *argv[])
         fprintf(stderr, "ERROR: Se espera al menos un argumento.\n");
         exit(EXIT_FAILURE);
     }
-    //tests();
     
     char *path = path_textos(argv[1]);
     dir directorio = leer_directorio(path);
@@ -38,6 +37,5 @@ int main(int argc, char *argv[])
     free(path);
     free_dir(directorio);
 
-    //run_python(argv[1]);
     return EXIT_SUCCESS;
 }
