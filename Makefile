@@ -7,6 +7,8 @@ TESTDIR=test
 OBJS=$(OBJDIR)/safe_functions.o $(OBJDIR)/directorio.o $(OBJDIR)/normalizado_texto.o $(OBJDIR)/main.o
 TESTOBJS=$(OBJDIR)/safe_functions.o $(OBJDIR)/directorio.o $(OBJDIR)/normalizado_texto.o
 
+all: start tests
+
 start: $(OBJS)
 	cc $(CFLAGS) $(OBJS) -o $(BINDIR)/start
 
