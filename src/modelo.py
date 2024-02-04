@@ -16,7 +16,7 @@ oracion = ["hola", "como", "_"]
 modelo = {
     ["hola", "como", "_"] : {
         "estas" : 0.5, "te" : 0.5
-        },
+        }, 
     ["como", "estas", "_"] : {
         "amigo" : 0.5, "bro" : 0.5
         },
@@ -65,7 +65,7 @@ modelo_eficiente_oracion2 = {
         "amigo" : 0.5, "bro" : 0.5
         }
 }
-modelo_eficiente_oracion3 = {
+modelo_eficiente_oracion3 = {   
     ["como", "_"] : {
         "estas" : 3/7, "te" : 2/7, "vas" : 1/7, "viene" : 1/7
     }
