@@ -13,7 +13,7 @@ all: start tests
 start: $(OBJS) | $(OBJDIR)  $(BINDIR)
 	cc $(CFLAGS) $(OBJS) -o $(BINDIR)/start
 
-tests: $(OBJS)  | $(ENTRADAS)
+tests: $(OBJS)  | $(ENTRADAS) $(TESTDIR)
 	cc $(CFLAGS) $(TESTOBJS) -o $(TESTDIR)/CTests $(SRCDIR)/test_normalizado_texto.c 
 
 $(OBJDIR)/safe_functions.o: $(SRCDIR)/safe_functions.c | $(OBJDIR)
@@ -36,5 +36,8 @@ $(ENTRADAS):
 
 $(BINDIR):
 	mkdir -p $(BINDIR)
+
+$(TESTDIR):
+	mkdir -p $(TESTDIR)
 clean:
 	rm -f $(OBJDIR)/*.o
