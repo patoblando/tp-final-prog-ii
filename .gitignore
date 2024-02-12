@@ -2,3 +2,5 @@
 *.log
 Entradas/*
 *.o
+bin/*
+test/*
