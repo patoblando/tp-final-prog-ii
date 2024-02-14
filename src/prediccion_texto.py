@@ -1,5 +1,6 @@
 import sys
 import random
+import json
 
 
 def predecir():
@@ -22,8 +23,35 @@ def get_entrada(nombre):
         print("ERROR: No se ingresó el nombre del archivo", file=sys.stderr)
         sys.exit(1)
 
-def generar_modelo(oracion, texto):
-    pass
+def contar_ocurrencias(oracion, texto):
+    ocurrencias = 0
+    for i in range(len(texto)):
+        if texto[i] == oracion:
+            ocurrencias += 1
+    return ocurrencias
+
+def subcadenas(oracion, texto):
+    subcadenas = []
+    for i in range(len(oracion)):
+        subcadenas.append(oracion[i:])
+    return subcadenas
+
+def modelo_oracion(oracion, texto):
+    modelo = {}
+    for subcadena in subcadenas(oracion, texto):
+        ocurrencias = 0
+        modelo[tuple(subcadena)] = 0 
+    return modelo
+
+def generar_modelos(frases, texto):
+    modelos = {}
+    for frase in frases:
+        modelo = modelo_oracion(frase, texto)
+        print(modelo)
+        if modelo:
+            modelos[tuple(frase)] = modelo
+    return modelos
+
 
 def predecir(oracion, modelo):
     pass
@@ -39,16 +67,23 @@ def leer_frases(nombre):
         archivo.close()
         return frases
     except FileNotFoundError:
-        print("ERROR: No se encontró el archivo", file=sys.stderr)
+        print("ERROR: No se encontró el archivo " + frases_path, file=sys.stderr)
         sys.exit(1)
 
-# TODO: Borrar las palabras vacias de entradas y frases
+
 def main():
-    nombre = sys.argv[1]
+    try:
+        nombre = sys.argv[1]
+    except IndexError:
+        print("ERROR: No se ingresó el nombre del archivo", file=sys.stderr)
+        sys.exit(1)
     entrada = get_entrada(nombre)
     frases = leer_frases(nombre)
-    print(entrada) # TODO: Printear entradas y frases a un json asi lo puedo ver lindo
-    print(frases)
+    modelos = generar_modelos(frases, entrada)
+    with open('debugg.json', 'w') as f:
+        modelos_str = {str(k): {str(sub_k): sub_v for sub_k, sub_v in v.items()} for k, v in modelos.items()}
+        json.dump({"entrada": entrada, "frases": frases, "modelos": modelos_str}, f, indent=4)
+    
 
 if __name__ == "__main__":
     main()

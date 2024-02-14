@@ -1,4 +1,3 @@
-
 texto = "Hola como estas\nHola como te llamas\nHola como estas amigo\nHola como estas bro\nHola como te va\n Estas bien amigo\nComo vas amigo\nComo viene tu dieta"
 
 oracion1 = "Hola como _"
@@ -7,7 +6,7 @@ oracion3 = "como _ te"
 
 # Modelo de ejemplo de como almacenaria la informacion.
 # Tengo un diccionario de dicionarios, donde la llave es una lista que representa la oracion a predecir
-# y el valor es un diccionario donde la llave es las palabra que siguen a la oracion 
+# y el valor es un diccionario donde la llave es las palabra que siguen a la oracion
 # en nuestro archivo de entrada y el valor es la cantidad de veces que aparece esa palabra dividido
 # la cantidad de veces que aparece la oracion (con alguna palabra en el guion bajo) en el archivo de entrada.
 
@@ -82,11 +81,9 @@ oracion = "hola amigo _ estas bien\n"
 texto = "hola amigo mio\ncomo estas bien\nseguro estas bien\nhola amigo queres ir a comer\nhola amigo queres ir a tomar algo\n"
 
 modelo = {
-    ["hola", "amigo", "_"] : {
-        "mio" : 0.33, "queres" : 0.77
-    },
-    ["_" , "estas", "bien"] : {
-        "como" : 0.5, "seguro" : 0.5
+    ["hola", "amigo", "_", "estas", "bien"]: {
+        ["hola", "amigo", "_"]: {"mio": 0.33, "queres": 0.77},
+        ["_", "estas", "bien"]: {"como": 0.5, "seguro": 0.5},
     }
 }
 
