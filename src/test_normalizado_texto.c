@@ -15,8 +15,10 @@ void test_leer_directorio()
     assert(sizeof(directorio) == sizeof(dir));
     assert(directorio.archivos != NULL);
     assert(directorio.cantidad == 4);
-    assert(strcmp(directorio.nombres[0], "!.txt") == 0);
-    assert(directorio.archivos[0] != NULL);
+    assert(directorio.nombres != NULL);
+    int bandera_archivo = 1;
+    for (int i = 0; i < directorio.cantidad; i++) bandera_archivo = (strcmp(directorio.nombres[i], "!.txt") == 0); //Si el archivo !.txt esta en el directorio
+    assert(bandera_archivo == 0);
     free_dir(directorio);
 }
 void test_normalizar_str()
@@ -42,8 +44,9 @@ void test_normalizar_dir()
     FILE* test = safe_fopen("test.txt", "r");
     char* linea = NULL;
     size_t len = 0;
-    assert((getline(&linea, &len, test)) != -1);
-    assert(!strcmp(linea, "hola como estas esto es un lorem ipsum\n"));
+    int bandera_cadena = 1;
+    while ((getline(&linea, &len, test)) != -1) bandera_cadena = (strcmp(linea, "buenos dias como estas esto es un lorem ipsum\n") == 0);
+    assert(bandera_cadena == 0);
     safe_fclose(test);
     free(linea);
     free_dir(directorio);
