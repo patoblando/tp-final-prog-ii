@@ -34,6 +34,8 @@ int main(int argc, char *argv[])
     write_directorio_normalizado(directorio, out_file_path);
     free(out_file_path);
     
+    run_python(argv[1]);
+
     free(path);
     free_dir(directorio);
 

@@ -9,7 +9,7 @@
 
 # Trabajo Práctico Final - Programación II - Predicción de texo
 
-Un programa simple de predicción de texto hecho en c y Python como trabajo final de la materia "Programación II" en la carrera de Licenciatura en Ciencias de la Computación de la UNR.
+Un programa simple de predicción de texto hecho en C y Python como trabajo final de la materia "Programación II" en la carrera de Licenciatura en Ciencias de la Computación de la UNR.
 
 ## Prerequisitos
 **El programa es compatible _solo_ con sistemas Unix
@@ -18,6 +18,7 @@ Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/window
 - GCC (https://gcc.gnu.org/)
 - Python3 (https://www.python.org)
 - git (https://git-scm.com/)
+- Make (https://www.gnu.org/software/make/)
 
 ## Clonar repositorio  
 
@@ -27,15 +28,33 @@ Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/window
   git clone https://github.com/patoblando/tp-final-prog-ii/
   ```
   
-## Como compilar
+## Como compilar y ejecutar
 
-Para compilar y correr el programa rápidamente ejecute:
+  Para compilar, simplemente correr:
 
  ```sh
-  gcc -g -Wall -o bin/hello_world src/normalizado_texto.c && bin/start {{arg}}
+  make
   ```
 
-## Tests
+  Para correr el programa, ejecute el programa de C recién creado, este correrá el código de python
+ ```sh
+  bin/start {{arg}} 
+  ```
+  
+  > **Nota:** Se puede coompilar solo el codigo de C y n los test usando ```make start```
 
-Los tests del programa en C fallaran si el programa no puede encontrar el directorio Textos/hello_world con sus archivos adentro.
-No modifiques estos archivos o el programa no funcionara correctamente.
+## Tests
+  Para coompilar los test en C, se puede correr:
+  ```sh
+  make test
+  ```
+  > **Nota:** Correr solo make también coompila los tests
+
+  Y para correr los tests de C, ejecute:
+
+  ```sh
+  test/CTests
+  ```
+
+  Los tests del programa en C fallaran si el programa no puede encontrar el directorio Textos/hello_world   con sus archivos adentro.
+  No modifiques estos archivos o el programa no funcionara correctamente.
