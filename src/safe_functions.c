@@ -43,15 +43,6 @@ int safe_fclose(FILE *fp)
     return result;
 }
 
-char *path_textos(char *argumento)
-{
-    const char *textos_path = "Textos/";
-    char *path = safe_malloc(strlen(textos_path) + strlen(argumento) + 1);
-    *path = '\0';
-    strcat(path, textos_path);
-    strcat(path, argumento);
-    return path;
-}
 
 int safe_system(char *comando)
 {

@@ -24,3 +24,8 @@ void free_dir(dir directorio);
  * Lee los nombres de los archivos en un directorio.
  */
 void leer_nombres(char* path_carpeta);
+
+/**
+ * Borra el archivo temporal que contiene los nombres de los archivos.
+ */
+void rm_temp();
