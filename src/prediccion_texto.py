@@ -24,10 +24,10 @@ def get_entrada(nombre):
         print("ERROR: No se ingresó el nombre del archivo", file=sys.stderr)
         sys.exit(1)
 
-def generar_ngrama(words, n):
-    return [tuple(words[i:i+n]) for i in range(len(words)-n+1)]
+def generar_ngrama(oracion, n):
+    return [tuple(oracion[i:i+n]) for i in range(len(oracion)-n+1)]
 
-def get_palabra_modelo(palabra, direccion, modelo):
+def get_mas_probable(palabra, direccion, modelo):
     if modelo[palabra]:
         return max(modelo[palabra][direccion].items(), key=lambda item: item[1])
     return None, 0
@@ -40,12 +40,12 @@ def predecir(oracion, modelo, peso_ant = 0.66, peso_sig = 0.33):
     # Hay palabra previa
     if idx > 0: 
         prev_word = oracion[idx-1]
-        palabra_predict_prev, palabra_prev_apariciones = get_palabra_modelo(prev_word, SIG_PALABRA, modelo)
+        palabra_predict_prev, palabra_prev_apariciones = get_mas_probable(prev_word, SIG_PALABRA, modelo)
 
     # Hay palabra siguiente
     if idx < len(oracion) - 1: 
         sig_word = oracion[idx+1]
-        palabra_predict_sig, palabra_sig_apariciones = get_palabra_modelo(sig_word, PREV_PALABRA, modelo)
+        palabra_predict_sig, palabra_sig_apariciones = get_mas_probable(sig_word, PREV_PALABRA, modelo)
 
     # La palabra no esta en mi texto de entrenamiento
     if palabra_prev_apariciones == 0 and palabra_sig_apariciones == 0:
