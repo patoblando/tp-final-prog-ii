@@ -3,8 +3,27 @@
 Estudiante: Agustín Tomás Blando
 Profesor: Federico Severino Guimpel
 
-## Predicción de texto
+## C: Normalizado del Texto
 
+### Leer directorio
+
+### Normalizar texto
+
+### safe_functions
+
+### main.c
+
+## Python: Predicción de texto
+
+### Modelo
+
+## Entrenamiento del modelo
+#### n-grama / bigrama
+
+#### Modelo de lenguaje natural
+#### Entrenamiento modelo
+
+### Implementación
 
 
 ```python:n
