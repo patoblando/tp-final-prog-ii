@@ -1,16 +1,9 @@
 
-<br />
-  <h3 align="center"></h3>
-
-  <p align="center">
-    
-  </p>
-</div>
-
-# Trabajo Práctico Final - Programación II - Predicción de texo
+# Trabajo Práctico Final - Programación II - Predicción de texto
 
 Un programa simple de predicción de texto hecho en C y Python como trabajo final de la materia "Programación II" en la carrera de Licenciatura en Ciencias de la Computación de la UNR.
 
+[[Diseño de Programa]]
 ## Prerequisitos
 **El programa es compatible _solo_ con sistemas Unix
 Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/windows/wsl/install)**
@@ -58,3 +51,6 @@ Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/window
 
   Los tests del programa en C fallaran si el programa no puede encontrar el directorio Textos/hello_world   con sus archivos adentro.
   No modifiques estos archivos o el programa no funcionara correctamente.
+
+  > **test:** Correr solo make también coompila los tests
+
