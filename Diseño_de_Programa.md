@@ -217,46 +217,75 @@ Para poder trabajar con memoria dinámica, hago uso de la función `getline()`. 
 
 La función se encargará de reallocar (o allocar si `line` apunta a null) la memoria necesaria para guardar las lineas del archivo a medida que lo vamos leyendo, por eso la variable `line` usa **memoria dinámica** y tengo que liberarla una vez termine de usarla. 
 
-### Normalizar texto
-
-
 
 ## Python: Predicción de texto
 
 ### Modelo
 
-## Entrenamiento del modelo
-#### n-grama / bigrama
-
-#### Modelo de lenguaje natural
-#### Entrenamiento modelo
-
-### Implementación
-
+Para la implementación de la predicción de texto en python, decidí usar un modelo común mente usado en modelos de lenguaje natural: un bigrama.
+Así es como creo un bigrama en python:
 
 ```python
-def predecir(oracion, modelo,):
-    idx = oracion.index("_")
-    palabra_sig_apariciones = 0
-    palabra_prev_apariciones = 0
+def generar_ngrama(oracion, n):
+    return [tuple(oracion[i:i+n]) for i in range(len(oracion)-n+1)]
+```
 
-    # Hay palabra previa
-    if idx > 0: 
-        prev_word = oracion[idx-1]
-        palabra_predict_prev, palabra_prev_apariciones = predecir_palabra(prev_word, SIG_PALABRA, modelo)
+La función sirve para generar un n-grama, pero en nuestro caso solo necesito generar bigramas.
+Decidí usar bigramas porque es una manera simple de generar predicciones bastante acertadas. Además, por lo limitado de los datos de entrenamiento, no habría mejoras considerables de usar un n-grama de magnitud mayor.
+## Entrenamiento del modelo
+Si bien uso un bigrama, nuestro caso tenemos más contexto que solo la palabra precedente para adivinar la que sigue. Por eso guardo bi-gramas de palabras que normalmente se preceden y de palabras que normalmente van después de otras. 
 
-    # Hay palabra siguiente
-    if idx < len(oracion) - 1: 
-        sig_word = oracion[idx+1]
-        palabra_predict_sig, palabra_sig_apariciones = predecir_palabra(sig_word, PREV_PALABRA, modelo)
+```python
+def entrenar_modelo(texto):
+    modelo = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+    for oracion in texto:
+        for w1, w2 in generar_ngrama(   oracion, 2):
+            modelo[w1][SIG_PALABRA][w2] += 1
+            modelo[w2][PREV_PALABRA][w1] += 1
+    return modelo
+```
 
-    # La palabra no esta en mi texto de entrenamiento
-    if palabra_prev_apariciones == 0 and palabra_sig_apariciones == 0:
-        palabra_random = random.choice(list(modelo.keys()))
-        # Devuelvo una palabra al azar
-        return palabra_random  if not DEBUGG else  "r_" + palabra_random 
+```json
+"ejemplo": {
+            "sig": {
+                "de": 1
+            }
+        },
+        "de": {
+            "prev": {
+                "ejemplo": 1
+            },
+            "sig": {
+                "archivo": 1
+            }
+        },
+        "archivo": {
+            "prev": {
+                "de": 1
+            },
+            "sig": {
+                "con": 1
+            }
+        },
+        "con": {
+            "prev": {
+                "archivo": 1
+            },
+            "sig": {
+                "espacios": 1
+            }
+        },
+    (...)
+```
 
-    return palabra_predict_prev if palabra_prev_apariciones > palabra_sig_apariciones else palabra_predict_sig
+### Predicción
+Para predecir la palabra faltante de una oración oración, tomo la palabra que esté al lado del guión, la dirección en la que está, y busco en mi diccionario adecuado la palabra con mayor apariciones (la más probable).
+
+```python
+def get_mas_probable(palabra, direccion, modelo):
+    if modelo[palabra]:
+        return max(modelo[palabra][direccion].items(), key=lambda item: item[1])
+    return None, 0
    
 ```
 
@@ -273,12 +302,12 @@ def predecir(oracion, modelo,):
     # Hay palabra previa
     if idx > 0: 
         prev_word = oracion[idx-1]
-        palabra_predict_prev, palabra_prev_apariciones = predecir_palabra(prev_word, SIG_PALABRA, modelo)
+        palabra_predict_prev, palabra_prev_apariciones = get_mas_probable(prev_word, SIG_PALABRA, modelo)
 
     # Hay palabra siguiente
     if idx < len(oracion) - 1: 
         sig_word = oracion[idx+1]
-        palabra_predict_sig, palabra_sig_apariciones = predecir_palabra(sig_word, PREV_PALABRA, modelo)
+        palabra_predict_sig, palabra_sig_apariciones = get_mas_probable(sig_word, PREV_PALABRA, modelo)
 
     # La palabra no esta en mi texto de entrenamiento
     if palabra_prev_apariciones == 0 and palabra_sig_apariciones == 0:

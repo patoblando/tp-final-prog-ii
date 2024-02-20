@@ -3,7 +3,7 @@
 
 Un programa simple de predicción de texto hecho en C y Python como trabajo final de la materia "Programación II" en la carrera de Licenciatura en Ciencias de la Computación de la UNR.
 
-[[Diseño de Programa]]
+[Diseño de Programa](Diseño_de_programa.md)
 ## Prerequisitos
 **El programa es compatible _solo_ con sistemas Unix
 Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/windows/wsl/install)**
