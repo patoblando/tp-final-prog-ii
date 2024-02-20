@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../include/directorio.h"
+#include <stdbool.h>
 
 
 /**
