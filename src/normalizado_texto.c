@@ -30,7 +30,7 @@ char* normalizar_str(char* texto)
     // Recorro el texto, normalizando los caracteres y los guardo en texto_normalizado
     while (*char_ptr) {
         norm_char = normalizar_char(*char_ptr);
-        bool isCurrentAndNextCharSpaceOrNewline = (*char_ptr == ' ' || *char_ptr == '\n') && (idx == 0 || *(char_ptr + 1) == ' ' || *(char_ptr + 1) == '\n')
+        bool isCurrentAndNextCharSpaceOrNewline = (*char_ptr == ' ' || *char_ptr == '\n') && (idx == 0 || *(char_ptr + 1) == ' ' || *(char_ptr + 1) == '\n');
         if (norm_char && !isCurrentAndNextCharSpaceOrNewline) {
             texto_normalizado[idx++] = norm_char;
         }
