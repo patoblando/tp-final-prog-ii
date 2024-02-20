@@ -1,2 +1,3 @@
-Ejemplo de archivo con
-espacios en el nombre.
+ Ejemplo de      archivo con    
+espacios en el nombre.     
+Y en   el medio.
