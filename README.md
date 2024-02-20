@@ -37,7 +37,7 @@ Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/window
   > **Nota:** Se puede coompilar solo el codigo de C y n los test usando ```make start```
 
 ## Tests
-  Para coompilar los test en C, se puede correr:
+  Para compilar los test en C, se puede correr:
   ```sh
   make test
   ```
@@ -47,6 +47,16 @@ Para compatibilad en Windows, usar wsl (https://learn.microsoft.com/en-us/window
 
   ```sh
   test/CTests
+  ```
+  Los tests de python usan pytest,  asegurate de instalarlo usando
+
+  ```sh
+  pip3 install pytest
+  ```
+  Y luego, puedes correr los test con:
+
+  ```sh
+  python3 -m pytest src/test_predecir.py
   ```
 
   Los tests del programa en C fallaran si el programa no puede encontrar el directorio Textos/hello_world   con sus archivos adentro.
