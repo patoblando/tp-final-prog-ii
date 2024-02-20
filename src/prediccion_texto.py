@@ -2,27 +2,11 @@ import sys
 import random
 import json
 from collections import defaultdict
+import archivos
 
 SIG_PALABRA = "sig"
 PREV_PALABRA = "prev"
 DEBUGG = True
-
-def get_entrada(nombre):
-    try:
-        entrada = open("Entradas/" + nombre + ".txt", "r")
-
-        texto = entrada.read().split("\n")
-        for i in range(len(texto)):
-            texto[i] = texto[i].split(" ")
-
-        return texto
-    
-    except FileNotFoundError:
-        print("ERROR: No se encontró el archivo " + nombre, file=sys.stderr)
-        sys.exit(1)
-    except IndexError:
-        print("ERROR: No se ingresó el nombre del archivo", file=sys.stderr)
-        sys.exit(1)
 
 def generar_ngrama(oracion, n):
     return [tuple(oracion[i:i+n]) for i in range(len(oracion)-n+1)]
@@ -69,23 +53,12 @@ def entrenar_modelo(texto):
 
 def predecir_oraciones(frases, modelo):
     for oracion in frases:
-        guion_idx = oracion.index("_")
-        oracion[guion_idx] = "_" + predecir(oracion, modelo) + "_"
-        if DEBUGG: print(oracion)
-#Lee las oraciones de Frases/{{arg}}.txt y las devuelve en una lista de listas (frases)
-def leer_frases(nombre):
-    try:
-        frases_path = "Frases/" + nombre + ".txt"
-        archivo = open(frases_path, "r")
-        frases = archivo.read().split("\n")
-        for i in range(len(frases)):
-            frases[i] = frases[i].split(" ")
-        archivo.close()
-        return frases
-    except FileNotFoundError:
-        print("ERROR: No se encontró el archivo " + frases_path, file=sys.stderr)
-        sys.exit(1)
-
+        try:
+            guion_idx = oracion.index("_")
+            oracion[guion_idx] = "_" + predecir(oracion, modelo) + "_"
+            if DEBUGG: print(oracion)
+        except: ValueError
+    return frases
 
 def main():
     try:
@@ -93,10 +66,11 @@ def main():
     except IndexError:
         print("ERROR: No se ingresó el nombre del archivo", file=sys.stderr)
         sys.exit(1)
-    entrada = get_entrada(nombre)
-    frases = leer_frases(nombre)
+    entrada = archivos.get_entrada(nombre)
+    frases = archivos.leer_frases(nombre)
     modelos = entrenar_modelo(entrada)
     predecir_oraciones(frases, modelos)
+    archivos.escribir_salida(nombre, frases)
     if DEBUGG:
         with open('debugg.json', 'w') as f:
             modelos_str = {str(k): {str(sub_k): sub_v for sub_k, sub_v in v.items()} for k, v in modelos.items()}

@@ -6,3 +6,4 @@ bin/*
 test/*
 debugg.json
 .obsidian
+__pycache__
